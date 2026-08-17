@@ -3,6 +3,7 @@ package sharedkernel.presentation.sse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CountDownLatch;
 import sharedkernel.domain.guards.ObjectGuard;
 import sharedkernel.domain.guards.StringGuard;
 
@@ -10,6 +11,7 @@ public final class SseClient implements AutoCloseable {
 
     private final String id;
     private final OutputStream output;
+    private final CountDownLatch closed = new CountDownLatch(1);
 
     private volatile boolean open = true;
 
@@ -36,9 +38,14 @@ public final class SseClient implements AutoCloseable {
         write(": " + text.replace('\n', ' ').replace('\r', ' ') + "\n\n");
     }
 
+    public void awaitClose() throws InterruptedException {
+        closed.await();
+    }
+
     @Override
     public void close() {
         open = false;
+        closed.countDown();
 
         try {
             output.close();

@@ -1,6 +1,7 @@
 package sharedkernel.application.logging;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public final class CorrelationContext {
 
@@ -10,6 +11,10 @@ public final class CorrelationContext {
 
     public static void runWith(String correlationId, Runnable action) {
         ScopedValue.where(CURRENT, correlationId).run(action);
+    }
+
+    public static <T> T callWith(String correlationId, Supplier<T> action) {
+        return ScopedValue.where(CURRENT, correlationId).call(action::get);
     }
 
     public static Optional<String> current() {

@@ -25,6 +25,52 @@
 
 - **`jdk.httpserver`** (`com.sun.net.httpserver`), incluido en el JDK. Sin servidor de
   aplicaciones ni framework HTTP externo.
+- El servidor se monta con `WebServer` (Shared Kernel), que **escucha solo en loopback** y
+  usa un **executor de hilos virtuales**: cada petición y cada conexión SSE abierta ocupa
+  un hilo virtual, no uno del sistema operativo.
+
+### Convención de rutas (decidida)
+
+**Un prefijo de montaje por bounded context**, declarado con `Routes.at(...)`, y todos
+ellos montados en un único `Router`:
+
+```java
+Router.builder()
+    .mount(Routes.at("/appointments")
+        .get("/", handlers::list)
+        .get("/{id}", handlers::detail)
+        .post("/", handlers::schedule))
+    .mount(Routes.at("/reminders")
+        .get("/", handlers::list))
+    .build();
+```
+
+- Los segmentos `{nombre}` son parámetros de ruta; se leen con `request.pathParam("id")`
+  ya decodificados (un `%2F` no parte el segmento).
+- Un handler recibe `HttpRequest` y devuelve `HttpResponse` — **nunca escribe en el
+  socket**. No puede lanzar excepciones comprobadas: todo lo técnico queda en el `Router`.
+- Ninguna ruta se declara con el prefijo escrito a mano: **el proyecto no es dueño de la
+  raíz** y el prefijo debe poder cambiarse en un solo sitio.
+- Si la ruta existe pero el método no, la respuesta es **405 con cabecera `Allow`**; si no
+  existe ninguna ruta, **404**. Ambas viajan con el mismo cuerpo `ApiError` que el resto.
+
+El `Router` resuelve una vez, en la frontera, cuatro cosas que si no acaban copiadas en
+cada handler:
+
+- **Traducción de errores.** Cualquier excepción no controlada se convierte en `ApiError`;
+  una `FormatException` es 400 y **todo lo demás es 500 con mensaje genérico** — el
+  detalle real va al log, nunca al cuerpo de la respuesta.
+- **Identificador de correlación.** Se lee de `X-Correlation-Id`, y si no viene (o trae
+  algo que no encaja en `[A-Za-z0-9_-]{1,64}`) se genera uno. Queda vinculado al hilo
+  mientras corre el handler, aparece en el `ApiError` y se devuelve en la misma cabecera.
+  Se valida en vez de sanearse porque un valor con salto de línea permitiría **inyectar
+  cabeceras** en la respuesta.
+- **Límite de tamaño del cuerpo** (`Router.MAX_BODY_BYTES`, 1 MiB): se rechaza con 413,
+  antes de leer si el `Content-Length` ya lo declara. Con un heap de 96 MB, leer un cuerpo
+  sin límite es un modo de caída trivial de provocar.
+- **Cuerpo del error en JSON.** Es lo único que serializa el Shared Kernel; los handlers
+  entregan su JSON ya serializado como `String`. Así el kernel no arrastra librería JSON y
+  la ruta de error nunca depende de que el serializador del proyecto funcione.
 
 ## Actualización de pantalla
 
@@ -46,14 +92,22 @@ data: {"appointmentId":"A00000007"}
   reconexión**: el cliente que reconecta recarga su estado con una query normal. Los ids
   se emiten desde el principio para que añadir un búfer de reenvío más adelante no
   obligue a cambiar el formato.
-- El `SseHub` del kernel trabaja sobre un `OutputStream`, **no** sobre
-  `jdk.httpserver`: así el kernel no declara `requires jdk.httpserver` y el formato de
-  cable se testea contra un `ByteArrayOutputStream`, sin levantar un servidor.
+- **Un único stream SSE por proyecto**, en `/events`, compartido por todos los bounded
+  contexts. Como el cliente se suscribe por el nombre del evento, **ese nombre tiene que
+  ser único en todo el proyecto**: se nombra desde el agregado (`appointmentScheduled`),
+  que es lo que naturalmente evita la colisión.
+- El `SseHub` trabaja sobre un `OutputStream` y no sobre `jdk.httpserver`, de modo que el
+  formato de cable se testea contra un `ByteArrayOutputStream` sin levantar un servidor;
+  el adaptador que sí conoce el `HttpExchange` es `SseEndpoint`, aparte y mínimo.
 
-Tres detalles que el kernel resuelve una vez y conviene no reimplementar:
+Cuatro detalles que el kernel resuelve una vez y conviene no reimplementar:
 
 - **Un `data` multilínea repite el prefijo `data:` en cada línea.** Si no, el cliente
   recibe el mensaje truncado.
+- **Al abrir el stream se envía un comentario `: connected` y se hace flush.**
+  `sendResponseHeaders` no manda las cabeceras por el cable hasta que se escribe algo, así
+  que un SSE que solo se queda esperando eventos deja al cliente colgado sin llegar a
+  abrir la conexión.
 - **Latido periódico** (`: ping`) mediante `SseHub.sendHeartbeat()`: sin tráfico, el
   navegador o un proxy cortan la conexión a los pocos minutos. Quién lo programa es
   decisión del composition root.
@@ -116,7 +170,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.sharedkernel:sharedkernel:0.12.0")
+    implementation("dev.sharedkernel:sharedkernel:0.13.0")
     testImplementation("dev.sharedkernel:sharedkernel-archunit:0.2.0")
 }
 ```
@@ -132,6 +186,9 @@ En `module-info.java`, cada anillo que lo use declara `requires sharedkernel;`.
 
 ## Pendiente / a definir más adelante
 
-- Convención de rutas/endpoints HTTP.
-- Quién programa el latido del `SseHub` y con qué periodo.
+- Dónde se lee la configuración del proyecto (puerto, directorio de las bases de datos,
+  entorno). Hoy el puerto es una constante en `Main`.
+- Quién programa el latido del `SseHub` y con qué periodo. **Sin latido, un cliente que
+  se va sin avisar mantiene su hilo virtual bloqueado indefinidamente**: la desconexión
+  solo se detecta cuando falla una escritura.
 - Si en algún momento hace falta reenvío tras reconexión (`Last-Event-ID` + búfer).

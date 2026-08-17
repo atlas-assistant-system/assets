@@ -211,6 +211,7 @@ sharedkernel/                     (módulo único — sin bc, es transversal)
     persistence/                  Repositorio SQL base, migraciones, outbox store
   presentation/
     errors/                       Traducción de Error a HTTP
+    http/                         Router, rutas montables, servidor y frontera de errores
     sse/                          Eventos, cabeceras y hub de Server-Sent Events
 
 domain/
@@ -312,6 +313,5 @@ las capas a la vez — no forma parte de ninguna de ellas.
 Este documento cubre la estructura, las reglas de dependencia y la distribución de
 carpetas. Quedan por definir en próximas iteraciones:
 - Convención de nombres de clases DTO dentro de `dto/`, `requests/` y `responses/`
-- Convención de rutas HTTP y prefijo de montaje de cada bounded context
 - Dónde se lee la configuración del proyecto (puerto, directorio de las bases de datos,
   entorno)

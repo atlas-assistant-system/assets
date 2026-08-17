@@ -7,14 +7,19 @@ import sharedkernel.infrastructure.logging.LogEntryRenderers;
 
 public final class Main {
 
+    public static final int DEFAULT_PORT = 8080;
+
     private Main() {}
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         configureLogging();
 
-        ModuleApplication.wire(LogEntryRenderers.forCurrentConsole());
+        var application = ModuleApplication.wire(LogEntryRenderers.forCurrentConsole()).start(DEFAULT_PORT);
 
-        System.getLogger("{{MODULE_PACKAGE}}").log(Level.INFO, "{{MODULE_NAME}} started.");
+        Runtime.getRuntime().addShutdownHook(new Thread(application::stop));
+
+        System.getLogger("{{MODULE_PACKAGE}}")
+            .log(Level.INFO, "{{MODULE_NAME}} listening on http://localhost:" + application.port());
     }
 
     private static void configureLogging() {

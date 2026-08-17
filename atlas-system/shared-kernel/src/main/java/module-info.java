@@ -1,5 +1,6 @@
 module sharedkernel {
 
+    requires transitive jdk.httpserver;
     requires java.logging;
     requires java.sql;
 
@@ -20,5 +21,6 @@ module sharedkernel {
     exports sharedkernel.infrastructure.logging;
     exports sharedkernel.infrastructure.persistence;
     exports sharedkernel.presentation.errors;
+    exports sharedkernel.presentation.http;
     exports sharedkernel.presentation.sse;
 }
