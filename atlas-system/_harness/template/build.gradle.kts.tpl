@@ -18,7 +18,7 @@ java {
 }
 
 dependencies {
-    implementation("dev.sharedkernel:sharedkernel:0.14.0")
+    implementation("dev.sharedkernel:sharedkernel:0.15.0")
     implementation("org.xerial:sqlite-jdbc:3.47.1.0")
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
@@ -54,4 +54,11 @@ spotless {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+// Gradle canaliza la salida del proceso hacia su demonio, asi que System.console() es
+// null y la deteccion automatica elegiria el formato plano. En una ejecucion de
+// desarrollo queremos el formato de consola.
+tasks.named<JavaExec>("run") {
+    systemProperty("log.format", "console")
 }

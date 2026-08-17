@@ -103,10 +103,23 @@ El decorador no construye texto: construye un `HandlerLogEntry` y delega en un
 type=command name=ScheduleAppointment outcome=failure errorCode=APPOINTMENT_CANCELLED durationMs=3
 ```
 
-`LogEntryRenderers.forCurrentConsole()` elige uno u otro según haya terminal
-(`System.console()`). Al redirigir la salida a un fichero cae al formato plano — así el
-fichero nunca contiene secuencias ANSI, y **la semántica no depende del color**: el
-formato sin color lleva `outcome=` escrito con todas las letras.
+`LogEntryRenderers.forCurrentConsole()` decide en este orden:
+
+1. **`-Dlog.format=console|plain`** (o la variable de entorno `LOG_FORMAT`). Manda sobre
+   todo lo demás.
+2. **`NO_COLOR`**, si está definida: formato plano. Es la convención estándar para pedir
+   salida sin color.
+3. **Autodetección**: formato de consola solo si `System.console()` existe y es un
+   terminal.
+
+> **Si ves `clave=valor` cuando esperabas el formato de consola, no está roto.** Cuando la
+> salida está redirigida —a un fichero, a un IDE, o a `gradle run`, que la canaliza hacia
+> su demonio— `System.console()` es `null` y la autodetección elige plano. **La
+> autodetección nunca puede acertar bajo `gradle run`**: por eso la plantilla fuerza
+> `log.format=console` en la tarea `run`, y por eso existe el interruptor explícito.
+
+Que el fichero de log nunca lleve secuencias ANSI es deliberado, y por eso **la semántica
+no depende del color**: el formato plano lleva `outcome=` escrito con todas las letras.
 
 ## Correlación
 
