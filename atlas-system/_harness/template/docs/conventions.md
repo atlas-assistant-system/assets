@@ -112,20 +112,23 @@ También aplica al Given/When/Then de los tests (ver `testing-conventions.md`).
 
 ## Mensajes de commit
 
-**Conventional Commits, una sola línea, sin cuerpo.**
+**Conventional Commits, una sola línea, sin cuerpo, y en inglés.**
 
 ```
 <tipo>(<ámbito>): <qué hace, en minúscula y sin punto final>
 ```
 
 ```
-feat(appointments): agendar cita con validacion de solapamiento
-fix(appointments): evitar publicar eventos tras un rollback
-refactor(kernel): separar los guards por tipo protegido
-docs(repositories): documentar el orden de las migraciones
-test(appointments): cubrir el rechazo de citas canceladas
-chore(build): subir la version del formatter
+feat(appointments): schedule appointment with overlap validation
+fix(appointments): stop publishing events after a rollback
+refactor(kernel): split guards by guarded type
+docs(repositories): document migration ordering rules
+test(appointments): cover rejection of cancelled appointments
+chore(build): bump the formatter version
 ```
+
+El mensaje va **en inglés**, igual que el código: el historial es parte del repositorio,
+no de la documentación. Esta misma documentación sigue en español.
 
 Tipos: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `build`.
 
