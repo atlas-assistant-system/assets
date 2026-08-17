@@ -142,8 +142,9 @@ frame del protocolo** desde un dato de usuario.
 - **PIT** para mutation testing en `domain` — criterio de profundidad donde vive la
   lógica de negocio.
 - **ArchUnit** para verificar programáticamente las reglas de arquitectura (dependencias
-  entre capas, convenciones de paquetes) como parte de la suite de tests — refuerzo
-  adicional sobre lo que ya impone JPMS en tiempo de compilación.
+  entre capas, convenciones de paquetes) como parte de la suite de tests. Al ser el
+  proyecto un único módulo JPMS, **es el único mecanismo que impone la regla de
+  dependencia**, no un refuerzo opcional.
 
 Ver [testing-conventions.md](testing-conventions.md) para la convención completa (esta
 instancia local de las skills genéricas `test-conventions`/`unit-testing` ya existentes
@@ -170,7 +171,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.sharedkernel:sharedkernel:0.16.0")
+    implementation("dev.sharedkernel:sharedkernel:0.17.0")
     testImplementation("dev.sharedkernel:sharedkernel-archunit:0.2.0")
 }
 ```

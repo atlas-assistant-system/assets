@@ -18,6 +18,7 @@ module sharedkernel {
     exports sharedkernel.application.ports;
     exports sharedkernel.application.unitofwork;
     exports sharedkernel.infrastructure;
+    exports sharedkernel.infrastructure.console;
     exports sharedkernel.infrastructure.logging;
     exports sharedkernel.infrastructure.persistence;
     exports sharedkernel.presentation.errors;

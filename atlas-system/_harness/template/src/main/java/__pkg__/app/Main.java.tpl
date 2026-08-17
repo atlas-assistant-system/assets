@@ -3,6 +3,7 @@ package {{MODULE_PACKAGE}}.app;
 import java.io.IOException;
 import java.lang.System.Logger.Level;
 import java.util.logging.LogManager;
+import sharedkernel.infrastructure.console.StartupBanner;
 import sharedkernel.infrastructure.logging.LogEntryRenderers;
 
 public final class Main {
@@ -18,8 +19,17 @@ public final class Main {
 
         Runtime.getRuntime().addShutdownHook(new Thread(application::stop));
 
-        System.getLogger("{{MODULE_PACKAGE}}")
-            .log(Level.INFO, "{{MODULE_NAME}} listening on http://localhost:" + application.port());
+        System.out.print(banner(application.port()));
+    }
+
+    private static String banner(int port) {
+        return StartupBanner
+            .named("{{MODULE_NAME}}")
+            .with("JDK", StartupBanner.jdkVersion())
+            .with("Port", String.valueOf(port))
+            .with("PID", StartupBanner.processId())
+            .with("API", "http://localhost:" + port)
+            .render();
     }
 
     private static void configureLogging() {

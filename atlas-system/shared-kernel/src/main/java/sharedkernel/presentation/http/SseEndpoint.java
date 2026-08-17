@@ -44,7 +44,6 @@ public final class SseEndpoint implements HttpHandler {
             Thread.currentThread().interrupt();
         } finally {
             hub.disconnect(client.id());
-            exchange.close();
         }
     }
 }

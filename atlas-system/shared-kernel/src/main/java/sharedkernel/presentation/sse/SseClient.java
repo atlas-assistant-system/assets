@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import sharedkernel.domain.guards.ObjectGuard;
 import sharedkernel.domain.guards.StringGuard;
 
@@ -11,7 +12,8 @@ public final class SseClient implements AutoCloseable {
 
     private final String id;
     private final OutputStream output;
-    private final CountDownLatch closed = new CountDownLatch(1);
+    private final CountDownLatch closeSignal = new CountDownLatch(1);
+    private final AtomicBoolean closed = new AtomicBoolean();
 
     private volatile boolean open = true;
 
@@ -39,17 +41,22 @@ public final class SseClient implements AutoCloseable {
     }
 
     public void awaitClose() throws InterruptedException {
-        closed.await();
+        closeSignal.await();
     }
 
     @Override
     public void close() {
         open = false;
-        closed.countDown();
+
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
+
+        closeSignal.countDown();
 
         try {
             output.close();
-        } catch (IOException ignored) {
+        } catch (IOException | RuntimeException ignored) {
             // Cerrar una conexion que el cliente ya solto no aporta nada nuevo.
         }
     }

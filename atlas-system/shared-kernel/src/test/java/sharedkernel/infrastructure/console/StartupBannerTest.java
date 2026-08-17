@@ -1,0 +1,76 @@
+package sharedkernel.infrastructure.console;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.jupiter.api.Test;
+import sharedkernel.domain.exceptions.GuardException;
+
+class StartupBannerTest {
+
+    @Test
+    void shouldRenderOneRowPerFontLine() {
+        var rows = AsciiFont.render("AT");
+
+        assertThat(rows).hasSize(AsciiFont.HEIGHT);
+        assertThat(rows.getFirst()).isEqualTo(" ###  #####");
+    }
+
+    @Test
+    void shouldKeepEveryGlyphRowTheSameWidth() {
+        for (var character = 'A'; character <= 'Z'; character++) {
+            assertThat(AsciiFont.glyphFor(character))
+                .as("glyph for %s", character)
+                .hasSize(AsciiFont.HEIGHT)
+                .allMatch(row -> row.length() == AsciiFont.WIDTH);
+        }
+    }
+
+    @Test
+    void shouldLeaveBlankSpaceForCharactersOutsideTheAlphabet() {
+        assertThat(AsciiFont.render("A1")).allMatch(row -> row.endsWith("     "));
+    }
+
+    @Test
+    void shouldRenderTheNameRegardlessOfCase() {
+        assertThat(AsciiFont.render("at")).isEqualTo(AsciiFont.render("AT"));
+    }
+
+    @Test
+    void shouldListEveryEntryWhenRendered() {
+        var banner = StartupBanner
+            .named("AGENDA")
+            .withoutColor()
+            .with("JDK", "25.0.1")
+            .with("Port", "8080")
+            .with("PID", "4242")
+            .render();
+
+        assertThat(banner).contains("JDK   25.0.1").contains("Port  8080").contains("PID   4242");
+    }
+
+    @Test
+    void shouldNotEmitEscapeSequencesWhenColorIsDisabled() {
+        var banner = StartupBanner.named("AGENDA").withoutColor().with("Port", "8080").render();
+
+        assertThat(banner).doesNotContain(StartupBanner.ESC);
+    }
+
+    @Test
+    void shouldEmitTheChosenColorWhenColorIsEnabled() {
+        var banner = StartupBanner.named("A").withColor(true).colored(StartupBanner.DEEP_NAVY).render();
+
+        assertThat(banner).contains(StartupBanner.DEEP_NAVY).contains(StartupBanner.RESET);
+    }
+
+    @Test
+    void shouldReportTheRunningJdkAndProcess() {
+        assertThat(StartupBanner.jdkVersion()).isNotBlank();
+        assertThat(StartupBanner.processId()).containsOnlyDigits();
+    }
+
+    @Test
+    void shouldRejectABlankName() {
+        assertThatThrownBy(() -> StartupBanner.named(" ")).isInstanceOf(GuardException.class);
+    }
+}

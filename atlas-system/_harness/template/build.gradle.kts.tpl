@@ -18,7 +18,7 @@ java {
 }
 
 dependencies {
-    implementation("dev.sharedkernel:sharedkernel:0.16.0")
+    implementation("dev.sharedkernel:sharedkernel:0.17.0")
     implementation("org.xerial:sqlite-jdbc:3.47.1.0")
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
