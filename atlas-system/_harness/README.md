@@ -16,6 +16,25 @@ Lo que sí comparten todos los módulos es **el mismo tipo de arquitectura, stac
 convenciones**, definidas una sola vez aquí y propagadas por copia (no por referencia)
 a cada módulo, para que cada uno sea autocontenido.
 
+### El aislamiento es un método de desarrollo, no una arquitectura de despliegue
+
+Cada módulo se desarrolla **como si fuera un microservicio**: producto completo,
+autónomo y arrancable por sí solo, con sus propios requisitos, su propio dominio y sus
+propios casos de uso. Pero el destino no es un despliegue de microservicios — al final
+los módulos se ensamblan en una sola aplicación Atlas.
+
+Dos consecuencias que conviene no olvidar al revisar decisiones:
+
+- **El outbox no se justifica por el límite de proceso**, sino porque hay un fichero
+  SQLite por bounded context: no existe una transacción única que abarque dos contextos,
+  estén o no en el mismo JVM. Si algún día todo corre en un proceso, el outbox sigue
+  siendo necesario por la misma razón.
+- Las tres reglas de "El proyecto como producto autónomo" en `architecture.md` (nombrar
+  todo desde el propio dominio, no asumirse dueño de la raíz HTTP ni único componente del
+  proceso, exponer el cableado como algo arrancable y no solo como un `main`) **son los
+  requisitos del ensamblaje final**, redactadas de forma neutra: leídas desde el módulo
+  parecen simple higiene, y no filtran que exista un sistema que lo componga.
+
 ## Estructura
 
 ```
@@ -133,4 +152,6 @@ sustituye por el slug del módulo (sin guiones, para que sea un identificador Ja
 
 ## Pendiente
 - Diseñar la capa de integración final (cómo se ensamblan los módulos en la app
-  Atlas real) — deliberadamente fuera de alcance por ahora.
+  Atlas real) — deliberadamente fuera de alcance por ahora. Lo único que se exige desde
+  ya es que cada módulo cumpla las tres reglas de producto autónomo, para que ensamblar
+  no obligue a reescribirlo.

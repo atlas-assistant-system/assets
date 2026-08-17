@@ -104,10 +104,12 @@ block):
   sus atributos.
 - **Aggregate Roots** — entidad raíz de un agregado; único punto de entrada para
   modificarlo, y responsable de garantizar sus invariantes de negocio.
-- **Domain Events** — hechos de negocio relevantes ocurridos dentro del dominio. Se
-  procesan de forma **síncrona y en memoria**, dentro de la misma transacción/hilo que
-  los generó (sin outbox ni bus asíncrono, al menos por ahora — coherente con un stack
-  sin framework y SQLite como persistencia).
+- **Domain Events** — hechos de negocio relevantes ocurridos dentro del dominio. El
+  agregado los acumula y **nadie los publica hasta que la unidad de trabajo confirma la
+  transacción**. Dentro de un mismo bounded context se procesan de forma **síncrona y en
+  memoria**; para cruzar de un contexto a otro salen por el **outbox**, porque al haber
+  un fichero SQLite por contexto no existe una transacción única que abarque los dos
+  (ver [repository-conventions.md](repository-conventions.md)).
 - **Domain Services** — lógica de negocio que no pertenece naturalmente a una entidad o
   value object concreto.
 
@@ -191,14 +193,25 @@ hipotético `appointments`:
 sharedkernel/                     (módulo único — sin bc, es transversal)
   domain/
     ddd/                          Entity, AggregateRoot, ValueObject, SingleValueObject
-    results/                      Result, Error
-    guards/                       Guard clauses
-    types/                        StronglyTypedId / tipos base reutilizables
+    events/                       DomainEvent
+    exceptions/                   Excepciones base de dominio
+    guards/                       Guard clauses, una clase por tipo guardado
+    results/                      Result, Error, ErrorType
+    types/                        Ids fuertemente tipados / tipos base reutilizables
   application/
-    cqrs/                         Command, CommandHandler, Query, QueryHandler (contratos base)
-    events/                       DomainEvent, DomainEventHandler (contratos base)
+    cqrs/                         Command, CommandHandler, Query, QueryHandler y buses
+    events/                       Publicación y entrega de domain events
+    logging/                      Decoradores de logging y contexto de correlación
+    outbox/                       Entrega de eventos entre bounded contexts
+    paging/                       PageRequest, Page
+    ports/                        Repository (contrato base)
+    unitofwork/                   Unidad de trabajo y seguimiento de agregados
   infrastructure/
-    (contratos transversales de infraestructura — pendiente de concretar)
+    logging/                      Renderers de log (consola y texto plano)
+    persistence/                  Repositorio SQL base, migraciones, outbox store
+  presentation/
+    errors/                       Traducción de Error a HTTP
+    sse/                          Eventos, cabeceras y hub de Server-Sent Events
 
 domain/
   appointments/
@@ -255,12 +268,37 @@ Notas sobre la adaptación desde GeneFlow.ApiNet2:
 - GeneFlow usa `Persistence/Configurations` y `Persistence/Context` (conceptos de EF
   Core); al no usar ORM, se sustituyen por `persistence/schema/` (SQL) y
   `persistence/mappers/` (mapeo manual `ResultSet` ↔ dominio).
-- Se excluyen deliberadamente `Outbox/`, `EventBus*` y `Redis/` del Shared Kernel de
-  referencia: no aplican mientras los domain events sean síncronos en memoria y no haya
-  cache distribuida en el stack actual. Si eso cambia, se añaden entonces.
+- De `Outbox/`, `EventBus*` y `Redis/` del Shared Kernel de referencia se adoptó
+  únicamente el **outbox** (`sharedkernel.application.outbox`): es la única forma de
+  entregar un evento de un contexto a otro cuando cada uno tiene su propio fichero SQLite
+  y, por tanto, su propia transacción. `EventBus*` y `Redis/` quedan fuera: no hay broker
+  ni cache distribuida en el stack.
 - GeneFlow no tiene bc en `Presentation` a nivel de handler de igual forma que aquí —
   se ha normalizado `requests/responses/handlers` por bc, análogo a
   `Contracts/<bc>/Requests`, `Contracts/<bc>/Responses` y `Endpoints/<bc>/` de GeneFlow.
+
+## El proyecto como producto autónomo
+
+Este proyecto es **completo por sí mismo**: modela su dominio entero, expone toda su
+funcionalidad y se ejecuta solo. No depende de ningún otro proyecto, no comparte código
+ni base de datos con nadie, y **no asume nada sobre quién lo consume**.
+
+De ahí salen tres reglas prácticas que conviene no violar aunque hoy parezcan
+innecesarias, porque son baratas ahora y caras después:
+
+1. **Todo se nombra desde el propio dominio.** Los nombres de eventos, rutas y tipos
+   describen lo que ocurre aquí dentro (`appointmentScheduled`), nunca a un consumidor
+   concreto. Un nombre que menciona a quien escucha convierte al oyente en parte del
+   contrato.
+2. **No se asume ser el dueño de la raíz HTTP ni el único componente del proceso.** Las
+   rutas se declaran relativas y montables bajo un prefijo; nada de estado global
+   compartido ni de estáticos mutables entre bounded contexts. Configurar estado global
+   del JVM (el `LogManager`, por ejemplo) es competencia exclusiva del arranque, nunca de
+   una capa.
+3. **El cableado se expone como algo arrancable, no solo como un `main`.** El composition
+   root construye y devuelve la aplicación ya cableada; `main` es una envoltura fina que
+   la arranca. Un `main` que hace el cableado dentro solo se puede ejecutar como proceso
+   suelto.
 
 ## Composición / arranque de la aplicación
 
@@ -274,11 +312,6 @@ las capas a la vez — no forma parte de ninguna de ellas.
 Este documento cubre la estructura, las reglas de dependencia y la distribución de
 carpetas. Quedan por definir en próximas iteraciones:
 - Convención de nombres de clases DTO dentro de `dto/`, `requests/` y `responses/`
-- Manejo de transacciones y unidad de trabajo (sin ORM, hay que decidir cómo se
-  gestiona explícitamente con SQLite)
-- Estrategia de mapeo entre filas SQLite y modelos de dominio (`mappers/`)
-- Cómo se registran/descubren los handlers de Commands/Queries y de Domain Events
-  (sin framework de DI, alguien tiene que cablear esto explícitamente — probablemente
-  el composition root)
-- Contratos transversales de `infrastructure/common/` y `sharedkernel/infrastructure/`
-  (qué necesita realmente cada módulo aparte de reloj/generador de ids)
+- Convención de rutas HTTP y prefijo de montaje de cada bounded context
+- Dónde se lee la configuración del proyecto (puerto, directorio de las bases de datos,
+  entorno)
