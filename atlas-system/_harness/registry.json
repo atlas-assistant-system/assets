@@ -1,12 +1,12 @@
 {
-  "templateVersion": "0.38.0",
+  "templateVersion": "0.39.0",
   "modules": [
     {
       "name": "agenda",
       "displayName": "Agenda",
       "path": "C:\\develop\\agenda",
       "domain": "Gestion de citas, recordatorios y calendario personal: agendar, reprogramar y cancelar citas, evitar solapamientos y avisar con antelacion.",
-      "templateVersion": "0.38.0",
+      "templateVersion": "0.39.0",
       "createdAt": "2026-08-17"
     }
   ]

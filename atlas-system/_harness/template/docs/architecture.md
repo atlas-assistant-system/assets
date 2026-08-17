@@ -213,7 +213,8 @@ sharedkernel/                     (módulo único — sin bc, es transversal)
     unitofwork/                   Unidad de trabajo y seguimiento de agregados
   infrastructure/
     logging/                      Renderers de log (consola y texto plano)
-    persistence/                  Repositorio SQL base, migraciones, outbox store
+    persistence/                  Repositorio SQL base, apertura de conexiones SQLite,
+                                   migraciones, outbox store
   presentation/
     errors/                       Traducción de Error a HTTP
     http/                         Router, rutas montables, servidor y frontera de errores
