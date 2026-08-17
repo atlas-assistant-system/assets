@@ -22,7 +22,7 @@ validación real del proyecto pasa por las factorías de Value Objects (`Result<
 directo dentro de cada método de repositorio (`StudyRepository.GetPublishedAsync`,
 por ejemplo). Son dos subsistemas construidos y nunca adoptados.
 
-## Por qué no se portan a Atlas
+## Por qué no se portan a este stack
 
 ### Validation
 

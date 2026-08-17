@@ -141,7 +141,7 @@ Push-Location $targetDir
 try {
     git init | Out-Null
     git add -A | Out-Null
-    git commit -m "Initial scaffold from atlas harness template v$currentTemplateVersion" | Out-Null
+    git commit -m "chore: initial project scaffold" | Out-Null
 }
 finally {
     Pop-Location

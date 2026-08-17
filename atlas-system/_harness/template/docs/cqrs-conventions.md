@@ -274,7 +274,7 @@ public final class SimpleDomainEventPublisher implements DomainEventPublisher {
 
 - Confirmar si los comportamientos transversales van por llamada explícita en cada
   handler o por una lista fija de gates en el `CommandBus` (ver sección de arriba).
-- Catálogo real de comportamientos transversales que necesita Atlas (autenticación,
+- Catálogo real de comportamientos transversales que necesita este proyecto (autenticación,
   ¿autorización por rol?, ¿límites de uso?) — en GeneFlow son específicos de su dominio
   de negocio (SaaS con planes de pago) y no aplican tal cual.
 - Si `CommandBus`/`QueryBus` son interfaces de Shared Kernel (contrato genérico) con la

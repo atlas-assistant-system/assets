@@ -3,7 +3,7 @@
 > Documento compartido: gestionado por el harness y sincronizado en todos los proyectos.
 > No lo edites manualmente en este repo — los cambios se sobrescribirán en el próximo `sync`.
 
-Este documento es la instanciación para Atlas de las convenciones base de testing ya
+Este documento es la instanciación de las convenciones base de testing ya
 establecidas (skills `test-conventions`/`unit-testing`, agnósticas de dominio y de
 framework), ajustadas a que aquí no hay Spring ni ningún framework de aplicación, y
 ampliadas con un par de prácticas observadas en el proyecto de referencia
@@ -95,7 +95,7 @@ reutiliza antes de crear uno nuevo.
 ## Qué probar según el tipo de clase
 
 Tabla de la convención base, con la columna derecha ajustada a los documentos propios
-de Atlas:
+de este proyecto:
 
 | Clase | Qué probar | Ver también |
 |---|---|---|
@@ -189,8 +189,8 @@ lance la suite. Usa fechas absolutas y coherentes con el `Clock` fijado.
   sí mismo.
 - **PIT** — mutation score, en `domain` especialmente (donde vive la lógica de
   negocio). GeneFlow aplica Stryker sobre su proyecto `Domain` con umbrales
-  `high: 80, low: 60, break: 50` — propuesta inicial para el módulo `domain` de cada
-  proyecto Atlas, a confirmar cuando haya código real que los valide.
+  `high: 80, low: 60, break: 50` — propuesta inicial para el módulo `domain` de este
+  proyecto, a confirmar cuando haya código real que los valide.
 
 ## Tests de arquitectura
 
