@@ -136,8 +136,10 @@ handler (ver [cqrs-conventions.md](cqrs-conventions.md) para el patrón concreto
 se despachan sin framework).
 
 - **Commands** — representan una intención de cambio (ej. `ScheduleAppointment`). Su
-  handler orquesta entidades/agregados de `Domain`, valida invariantes de aplicación y
-  persiste a través de repositorios.
+  handler orquesta entidades/agregados de `Domain` y persiste a través de repositorios.
+  **No valida nada**: la validación de datos de entrada vive en las factorías de los
+  Value Objects y las reglas e invariantes en el agregado (ver
+  [cqrs-conventions.md](cqrs-conventions.md)).
 - **Queries** — representan una petición de lectura (ej. `GetTodaysAppointments`). Su
   handler puede saltarse el modelo de dominio si conviene (ej. leer directamente un
   modelo de proyección/lectura) — las queries no tienen por qué pasar por agregados.

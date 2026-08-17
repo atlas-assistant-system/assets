@@ -31,10 +31,29 @@ public record ScheduleAppointmentCommand(
 
 ## Command Handlers
 
-Un handler por Command. Responsabilidad: validar entrada de aplicación, construir/cargar
-el agregado, invocar su método de comportamiento (que ya valida las reglas de negocio y
-lanza los Domain Events), persistir a través del repositorio (puerto de
-`application/<bc>/ports/`), y despachar los eventos pendientes.
+Un handler por Command. Responsabilidad: construir/cargar el agregado, invocar su método
+de comportamiento, persistir a través del repositorio (puerto de
+`application/<bc>/ports/`) y despachar los eventos pendientes.
+
+**Un handler no valida nada.** Ni los datos de entrada, ni reglas de negocio, ni
+invariantes. No hay comprobaciones de nulos, de rangos ni de formato en `application`.
+Todo eso vive en el dominio, en dos sitios y solo en dos:
+
+- **La factoría del Value Object** (`TimeSlot.create(...)`) devuelve `Result` cuando el
+  dato de entrada puede venir mal del exterior.
+- **El método de comportamiento del agregado** (`Appointment.schedule(...)`) hace cumplir
+  las reglas de negocio, y sus **guard clauses** protegen los invariantes que ningún
+  camino legítimo debería violar.
+
+Lo único que hace el handler con la validación es **propagar el fallo**: si un
+`Result` viene en fallo, lo devuelve tal cual y corta. Ese `if (isFailure()) return` no
+es validación — es cortocircuito.
+
+La razón de que sea una regla y no una preferencia: una validación escrita en el handler
+solo protege a **ese** caso de uso. La misma regla escrita en el agregado protege a todos
+los que existan hoy y a los que se escriban después, incluidos los tests y la carga desde
+base de datos. Duplicarla en el handler además invita a que las dos versiones se separen
+con el tiempo, y entonces la de fuera manda sobre la de dentro sin que nadie lo note.
 
 ```java
 public final class ScheduleAppointmentCommandHandler
@@ -95,14 +114,16 @@ public final class GetTodaysAppointmentsQueryHandler
     implements QueryHandler<GetTodaysAppointmentsQuery, Result<List<AppointmentDto>>> {
 
     private final AppointmentReadModel appointments;
+    private final Clock clock;
 
-    public GetTodaysAppointmentsQueryHandler(AppointmentReadModel appointments) {
+    public GetTodaysAppointmentsQueryHandler(AppointmentReadModel appointments, Clock clock) {
         this.appointments = appointments;
+        this.clock = clock;
     }
 
     @Override
     public Result<List<AppointmentDto>> handle(GetTodaysAppointmentsQuery query) {
-        var results = appointments.findTodaysAppointments(query.userId(), LocalDate.now());
+        var results = appointments.findTodaysAppointments(query.userId(), LocalDate.now(clock));
         return Result.success(results.stream().map(AppointmentMapper::toDto).toList());
     }
 }
