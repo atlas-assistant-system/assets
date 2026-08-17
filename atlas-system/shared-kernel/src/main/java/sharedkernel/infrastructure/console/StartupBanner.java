@@ -15,18 +15,24 @@ public final class StartupBanner {
     public static final String PRIMARY_BLUE = rgb(36, 107, 253);
     public static final String CYAN = rgb(54, 197, 240);
 
-    private final String name;
+    private final List<String> wordmark;
     private final List<Entry> entries = new ArrayList<>();
 
     private String color = PRIMARY_BLUE;
     private boolean colored = LogEntryRenderers.colorIsSupported();
 
-    private StartupBanner(String name) {
-        this.name = name;
+    private StartupBanner(List<String> wordmark) {
+        this.wordmark = wordmark;
     }
 
     public static StartupBanner named(String name) {
-        return new StartupBanner(StringGuard.notBlank(name, "name"));
+        return new StartupBanner(AsciiFont.render(StringGuard.notBlank(name, "name")));
+    }
+
+    public static StartupBanner showing(String wordmark) {
+        StringGuard.notBlank(wordmark, "wordmark");
+
+        return new StartupBanner(List.of(wordmark.replace("\r", "").split("\n", -1)));
     }
 
     public static String rgb(int red, int green, int blue) {
@@ -69,7 +75,7 @@ public final class StartupBanner {
     public String render() {
         var banner = new StringBuilder(System.lineSeparator());
 
-        for (var row : AsciiFont.render(name)) {
+        for (var row : wordmark) {
             banner.append(paint(row, color)).append(System.lineSeparator());
         }
 

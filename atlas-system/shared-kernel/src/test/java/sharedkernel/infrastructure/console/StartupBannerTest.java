@@ -3,6 +3,7 @@ package sharedkernel.infrastructure.console;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import sharedkernel.domain.exceptions.GuardException;
 
@@ -72,5 +73,30 @@ class StartupBannerTest {
     @Test
     void shouldRejectABlankName() {
         assertThatThrownBy(() -> StartupBanner.named(" ")).isInstanceOf(GuardException.class);
+    }
+
+    @Test
+    void shouldKeepALiteralWordmarkExactlyAsGiven() {
+        var art = String.join("\n", "  /\\  ", " /  \\ ", "/____\\");
+
+        var banner = StartupBanner.showing(art).withoutColor().render();
+
+        assertThat(banner).contains("  /\\  " + System.lineSeparator());
+        assertThat(banner).contains(" /  \\ " + System.lineSeparator());
+        assertThat(banner).contains("/____\\" + System.lineSeparator());
+    }
+
+    @Test
+    void shouldNotLeaveCarriageReturnsInsideTheWordmarkRows() {
+        var banner = StartupBanner.showing("/\\\r\n\\/").withoutColor().render();
+
+        var rows = banner.split(Pattern.quote(System.lineSeparator()), -1);
+
+        assertThat(rows).contains("/\\", "\\/");
+    }
+
+    @Test
+    void shouldRejectABlankWordmark() {
+        assertThatThrownBy(() -> StartupBanner.showing(" ")).isInstanceOf(GuardException.class);
     }
 }
