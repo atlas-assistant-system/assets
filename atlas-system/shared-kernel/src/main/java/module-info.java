@@ -20,4 +20,5 @@ module sharedkernel {
     exports sharedkernel.infrastructure.logging;
     exports sharedkernel.infrastructure.persistence;
     exports sharedkernel.presentation.errors;
+    exports sharedkernel.presentation.sse;
 }

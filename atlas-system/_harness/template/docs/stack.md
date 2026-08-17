@@ -31,6 +31,39 @@
 - **Server-Sent Events (SSE)** para el push del servidor hacia el cliente.
 - **POST** para las acciones del usuario.
 
+### Formato de los eventos SSE (decidido)
+
+```
+id: 42
+event: appointmentScheduled
+data: {"appointmentId":"A00000007"}
+
+```
+
+- `event` es el nombre al que se suscribe el cliente; `data` es JSON en una línea,
+  serializado por el módulo (el Shared Kernel no incorpora librería JSON).
+- `id` lo asigna `SseHub` con un contador creciente. **Hoy no hay reenvío tras
+  reconexión**: el cliente que reconecta recarga su estado con una query normal. Los ids
+  se emiten desde el principio para que añadir un búfer de reenvío más adelante no
+  obligue a cambiar el formato.
+- El `SseHub` del kernel trabaja sobre un `OutputStream`, **no** sobre
+  `jdk.httpserver`: así el kernel no declara `requires jdk.httpserver` y el formato de
+  cable se testea contra un `ByteArrayOutputStream`, sin levantar un servidor.
+
+Tres detalles que el kernel resuelve una vez y conviene no reimplementar:
+
+- **Un `data` multilínea repite el prefijo `data:` en cada línea.** Si no, el cliente
+  recibe el mensaje truncado.
+- **Latido periódico** (`: ping`) mediante `SseHub.sendHeartbeat()`: sin tráfico, el
+  navegador o un proxy cortan la conexión a los pocos minutos. Quién lo programa es
+  decisión del composition root.
+- **Nunca se fija `Content-Length`** (ver `SseHeaders.forStream()`). Con longitud fija el
+  servidor espera el cuerpo completo y no envía nada — es la causa más común de que
+  "SSE no funcione".
+
+Los nombres de evento y los ids rechazan saltos de línea: uno solo permitiría **forjar un
+frame del protocolo** desde un dato de usuario.
+
 ## JSON
 
 - **Jackson jr** (variante ligera de Jackson, sin el módulo `databind` completo).
@@ -83,7 +116,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.sharedkernel:sharedkernel:0.11.0")
+    implementation("dev.sharedkernel:sharedkernel:0.12.0")
     testImplementation("dev.sharedkernel:sharedkernel-archunit:0.2.0")
 }
 ```
@@ -100,4 +133,5 @@ En `module-info.java`, cada anillo que lo use declara `requires sharedkernel;`.
 ## Pendiente / a definir más adelante
 
 - Convención de rutas/endpoints HTTP.
-- Formato exacto de los eventos SSE.
+- Quién programa el latido del `SseHub` y con qué periodo.
+- Si en algún momento hace falta reenvío tras reconexión (`Last-Event-ID` + búfer).

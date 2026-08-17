@@ -18,7 +18,7 @@ subprojects {
     }
 
     dependencies {
-        "implementation"("dev.sharedkernel:sharedkernel:0.11.0")
+        "implementation"("dev.sharedkernel:sharedkernel:0.12.0")
 
         "testImplementation"(platform("org.junit:junit-bom:5.11.4"))
         "testImplementation"("org.junit.jupiter:junit-jupiter")
