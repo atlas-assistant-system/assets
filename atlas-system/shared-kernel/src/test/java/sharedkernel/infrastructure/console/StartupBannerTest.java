@@ -3,6 +3,7 @@ package sharedkernel.infrastructure.console;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.Arrays;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import sharedkernel.domain.exceptions.GuardException;
@@ -68,6 +69,32 @@ class StartupBannerTest {
     void shouldReportTheRunningJdkAndProcess() {
         assertThat(StartupBanner.jdkVersion()).isNotBlank();
         assertThat(StartupBanner.processId()).containsOnlyDigits();
+    }
+
+    @Test
+    void shouldFrameTheBannerBetweenTwoRules() {
+        var banner = StartupBanner.named("A").withoutColor().with("Port", "8080").render();
+
+        var rows = banner.split(Pattern.quote(System.lineSeparator()), -1);
+        var content = Arrays.stream(rows).filter(row -> !row.isEmpty()).toList();
+
+        assertThat(content.getFirst()).matches("=+");
+        assertThat(content.getLast()).matches("=+");
+        assertThat(content.getFirst()).isEqualTo(content.getLast());
+    }
+
+    @Test
+    void shouldMakeTheRuleAsWideAsTheWidestRow() {
+        var banner = StartupBanner
+            .named("A")
+            .withoutColor()
+            .with("API", "http://localhost:8080/appointments")
+            .render();
+
+        var rows = banner.split(Pattern.quote(System.lineSeparator()), -1);
+        var widest = Arrays.stream(rows).mapToInt(String::length).max().orElseThrow();
+
+        assertThat(rows[1]).hasSize(widest);
     }
 
     @Test

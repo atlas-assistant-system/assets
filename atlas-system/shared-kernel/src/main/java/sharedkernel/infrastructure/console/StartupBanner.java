@@ -14,6 +14,10 @@ public final class StartupBanner {
     public static final String DEEP_NAVY = rgb(11, 31, 58);
     public static final String PRIMARY_BLUE = rgb(36, 107, 253);
     public static final String CYAN = rgb(54, 197, 240);
+    public static final String RULE = "=";
+
+    private static final String INDENT = "  ";
+    private static final String GAP = "  ";
 
     private final List<String> wordmark;
     private final List<Entry> entries = new ArrayList<>();
@@ -73,26 +77,39 @@ public final class StartupBanner {
     }
 
     public String render() {
+        var labelWidth = entries.stream().mapToInt(entry -> entry.label().length()).max().orElse(0);
+        var rule = RULE.repeat(widthOf(labelWidth));
         var banner = new StringBuilder(System.lineSeparator());
+
+        banner.append(paint(rule, color)).append(System.lineSeparator());
 
         for (var row : wordmark) {
             banner.append(paint(row, color)).append(System.lineSeparator());
         }
 
-        if (entries.isEmpty()) {
-            return banner.toString();
+        if (!entries.isEmpty()) {
+            banner.append(System.lineSeparator());
         }
-
-        banner.append(System.lineSeparator());
-
-        var width = entries.stream().mapToInt(entry -> entry.label().length()).max().orElse(0);
 
         for (var entry : entries) {
-            banner.append("  ").append(paint(pad(entry.label(), width), DIM));
-            banner.append("  ").append(entry.value()).append(System.lineSeparator());
+            banner.append(INDENT).append(paint(pad(entry.label(), labelWidth), DIM));
+            banner.append(GAP).append(entry.value()).append(System.lineSeparator());
         }
 
+        banner.append(paint(rule, color)).append(System.lineSeparator());
+
         return banner.append(System.lineSeparator()).toString();
+    }
+
+    private int widthOf(int labelWidth) {
+        var widestWordmark = wordmark.stream().mapToInt(String::length).max().orElse(0);
+        var widestEntry = entries
+            .stream()
+            .mapToInt(entry -> INDENT.length() + labelWidth + GAP.length() + entry.value().length())
+            .max()
+            .orElse(0);
+
+        return Math.max(widestWordmark, widestEntry);
     }
 
     private String paint(String text, String ansiColor) {
