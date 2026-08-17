@@ -1,54 +1,57 @@
 plugins {
-    id("com.diffplug.spotless") version "8.9.0" apply false
+    `java-library`
+    application
+    id("com.diffplug.spotless") version "8.9.0"
 }
 
-subprojects {
-    apply(plugin = "java-library")
-    apply(plugin = "com.diffplug.spotless")
+description = "{{MODULE_TAGLINE}}"
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
     }
+}
 
-    extensions.configure<JavaPluginExtension> {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(25)
-        }
+dependencies {
+    implementation("dev.sharedkernel:sharedkernel:0.13.0")
+    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.assertj:assertj-core:3.26.3")
+    testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("dev.sharedkernel:sharedkernel-archunit:0.2.0")
+}
+
+application {
+    mainModule = "{{MODULE_PACKAGE}}"
+    mainClass = "{{MODULE_PACKAGE}}.app.Main"
+    applicationDefaultJvmArgs = listOf(
+        "-Xms96m",
+        "-Xmx96m",
+        "-Xss256k",
+        "-XX:+UseSerialGC",
+        "-XX:MaxMetaspaceSize=64m")
+}
+
+spotless {
+    lineEndings = com.diffplug.spotless.LineEnding.UNIX
+    java {
+        target("src/**/*.java")
+        eclipse().configFile(file("config/formatter.properties"))
+        importOrder("\\#", "")
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
     }
+}
 
-    dependencies {
-        "implementation"("dev.sharedkernel:sharedkernel:0.13.0")
-
-        "testImplementation"(platform("org.junit:junit-bom:5.11.4"))
-        "testImplementation"("org.junit.jupiter:junit-jupiter")
-        "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
-        "testImplementation"("org.assertj:assertj-core:3.26.3")
-        "testImplementation"("org.mockito:mockito-core:5.14.2")
-    }
-
-    extensions.configure<com.diffplug.gradle.spotless.SpotlessExtension> {
-        lineEndings = com.diffplug.spotless.LineEnding.UNIX
-        java {
-            target("src/**/*.java")
-            eclipse().configFile(rootProject.file("config/formatter.properties"))
-            importOrder("\\#", "")
-            removeUnusedImports()
-            trimTrailingWhitespace()
-            endWithNewline()
-        }
-    }
-
-    tasks.withType<Test>().configureEach {
-        useJUnitPlatform()
-    }
-
-    tasks.withType<JavaExec>().configureEach {
-        jvmArgs(
-            "-Xms96m",
-            "-Xmx96m",
-            "-Xss256k",
-            "-XX:+UseSerialGC",
-            "-XX:MaxMetaspaceSize=64m")
-    }
+tasks.test {
+    useJUnitPlatform()
 }

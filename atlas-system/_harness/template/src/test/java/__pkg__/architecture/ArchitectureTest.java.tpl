@@ -1,4 +1,4 @@
-package {{MODULE_PACKAGE}}.app;
+package {{MODULE_PACKAGE}}.architecture;
 
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;

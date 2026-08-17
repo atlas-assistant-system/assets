@@ -50,20 +50,24 @@ implementa (adaptador). Este es el **Principio de Inversión de Dependencias**: 
 de control puede ir hacia afuera, pero la dependencia de código siempre apunta hacia
 adentro.
 
-### Aplicación técnica de la regla: JPMS + ArchUnit
+### Aplicación técnica de la regla: ArchUnit
 
-La regla de dependencia no queda solo en documentación: se aplica en dos niveles.
+**El proyecto es un único módulo JPMS**, con un solo `src/main/java` y un solo
+`module-info.java`. Los anillos son paquetes dentro de ese árbol, no módulos Java
+separados.
 
-1. **JPMS (Java Platform Module System)** — cada anillo es un módulo Java independiente
-   con su propio `module-info.java`. Un anillo solo puede `requires` los módulos hacia
-   los que tiene permitido depender según esta regla. Si `Domain` intentase `requires
-   Infrastructure`, el proyecto directamente **no compila**. Esto convierte la regla de
-   dependencia en una restricción del compilador, no solo en una convención de equipo.
-2. **ArchUnit** — cubre lo que JPMS no puede expresar por sí solo: convenciones de
-   nombres/paquetes dentro de un mismo módulo, reglas más finas (ej. "las entidades no
-   pueden depender de los value objects de otro agregado"), y sirve como red de
-   seguridad que falla el build de tests si alguien encuentra la forma de saltarse una
-   regla arquitectónica.
+Eso tiene una consecuencia que conviene saber: **el compilador no impide que `domain`
+importe `infrastructure`**. Dentro de un mismo módulo Java todos los paquetes se ven
+entre sí, así que la regla de dependencia no es una restricción del compilador.
+
+Quien la sostiene es **ArchUnit**, que la verifica en la suite de tests junto con las
+reglas que el compilador nunca habría podido expresar (convenciones de nombres y
+paquetes, "las entidades no pueden depender de los value objects de otro agregado", y
+demás). Falla el build igual, pero en la fase de tests y no en la de compilación: si
+`gradle build` está en verde, la regla se cumple.
+
+El `module-info.java` sigue cumpliendo su función hacia fuera — declarar de qué depende
+el proyecto y qué expone — pero no hacia dentro.
 
 ## Las capas
 
@@ -183,11 +187,12 @@ lo que aplique a cada proyecto).
 > acceso directo) en vez de EF Core, sin outbox/bus de eventos (eventos síncronos en
 > memoria), y nombres de paquete en minúscula según convención Java.
 
-Cada anillo es su propio módulo JPMS (subproyecto Gradle). Dentro de cada módulo, el
-código se organiza primero por **bounded context (bc)** y, dentro de cada bc, por tipo
-de elemento. El código (nombres de clases, paquetes, ejemplos) se escribe en
-**inglés** — la documentación que lo explica se mantiene en español. Ejemplo con un bc
-hipotético `appointments`:
+Todo el código vive bajo un único `src/main/java`, y sus tests bajo un único
+`src/test/java`. El primer nivel de paquetes es el anillo; dentro de cada anillo el
+código se organiza por **bounded context (bc)** y, dentro de cada bc, por tipo de
+elemento. El código (nombres de clases, paquetes, ejemplos) se escribe en **inglés** — la
+documentación que lo explica se mantiene en español. Ejemplo con un bc hipotético
+`appointments`:
 
 ```
 sharedkernel/                     (módulo único — sin bc, es transversal)

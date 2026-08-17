@@ -7,15 +7,15 @@
 
 - **Java 25**, sin frameworks (ni Spring ni ningún contenedor de inversión de control
   externo). Todo se construye directamente sobre el JDK.
-- **Módulos JPMS** (Java Platform Module System): un módulo Java (`module-info.java`)
-  por cada anillo de la arquitectura (`Shared Kernel`, `Domain`, `Application`,
-  `Infrastructure`, `Presentación`). El propio compilador refuerza la regla de
-  dependencia — un anillo solo puede compilar si declara `requires` hacia los anillos
-  hacia los que tiene permitido depender; JPMS impide compilar lo contrario.
+- **JPMS** (Java Platform Module System): el proyecto entero es **un único módulo Java**,
+  con un solo `module-info.java`, que declara de qué depende y qué expone hacia fuera.
+  Los anillos de la arquitectura son paquetes dentro de ese módulo, así que **la regla de
+  dependencia entre anillos no la impone el compilador** sino ArchUnit, en los tests (ver
+  [architecture.md](architecture.md)).
 
 ## Construcción
 
-- **Gradle 9**, proyecto multi-módulo: un subproyecto Gradle por módulo JPMS/anillo.
+- **Gradle 9**, un único proyecto: un `src/main/java` y un `src/test/java` para todo.
 
 ## Persistencia
 
@@ -175,7 +175,7 @@ dependencies {
 }
 ```
 
-En `module-info.java`, cada anillo que lo use declara `requires sharedkernel;`.
+El `module-info.java` del proyecto declara `requires sharedkernel;` una sola vez.
 
 > **Limitación conocida en CI.** `mavenLocal()` es el `~/.m2` de la máquina de
 > desarrollo: en un runner de integración continua está vacío, así que el workflow

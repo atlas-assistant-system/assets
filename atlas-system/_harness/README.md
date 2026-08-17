@@ -137,15 +137,20 @@ Si un módulo tiene cambios locales sin commitear en esos ficheros, se omite y s
 
 ## Qué genera el esqueleto
 
-Un módulo nuevo nace **compilable y ejecutable**: proyecto Gradle multi-módulo con un
-subproyecto y un `module-info.java` por anillo (`domain`, `application`,
-`infrastructure`, `presentation`) más `app`, el composition root — que según
-`architecture.md` no pertenece a ninguna capa.
+Un módulo nuevo nace **compilable y ejecutable**: un único proyecto Gradle con un solo
+`src/main/java` y `src/test/java`, y un `module-info.java` para todo el proyecto. Los
+anillos (`domain`, `application`, `infrastructure`, `presentation` y `app`, el
+composition root) son paquetes dentro de ese árbol, no subproyectos.
 
 ```powershell
-gradle build     # compila los 5, pasa spotless y los tests de arquitectura
-gradle :app:run  # arranca e imprime la linea de inicio
+gradle build  # compila, pasa spotless y los tests de arquitectura
+gradle run    # arranca el servidor HTTP en loopback
 ```
+
+> **Consecuencia de tener un solo `module-info.java`:** JPMS ya no puede impedir que
+> `domain` dependa de `infrastructure`, porque todo vive en el mismo módulo Java. La
+> regla de dependencia la sostiene **solo ArchUnit**, en la fase de tests. Sigue fallando
+> el build, pero más tarde que antes.
 
 Las rutas de la plantilla usan `__pkg__` como marcador del paquete base; el generador lo
 sustituye por el slug del módulo (sin guiones, para que sea un identificador Java válido).

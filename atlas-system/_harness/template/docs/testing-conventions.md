@@ -14,33 +14,33 @@ mutation testing con umbrales concretos sobre `Domain`.
 > (JUnit, AssertJ, Mockito, JaCoCo, PIT) son librerías de testing, no frameworks de
 > aplicación — no contradicen `stack.md`.
 
-## Estructura: un test source set por módulo JPMS
+## Estructura: un único `src/test/java`, espejo del código
 
-A diferencia de GeneFlow, que tiene un único proyecto de test que referencia todas las
-capas (`GeneFlow.ApiNet2.Tests`), aquí **cada anillo (subproyecto Gradle/módulo JPMS)
-tiene su propio `src/test/java`**. Un test de `domain` compila sin que `application`,
-`infrastructure` ni `presentation` estén siquiera en el classpath — es la regla de
-dependencia de `architecture.md` reforzada también en los tests, no solo en el código
-de producción.
+Los tests viven en un solo `src/test/java` que **replica la estructura de paquetes del
+código**: primero el anillo, dentro el bounded context y dentro el tipo de elemento.
 
-Dentro de cada módulo, organización por bounded context y, dentro, por tipo (siguiendo
-la convención base, adaptada de "por módulo funcional" a "por bc dentro de este
-anillo"):
+Como todo comparte source set, nada impide técnicamente que un test de `domain` importe
+`infrastructure`. **No se hace**: un test de dominio que necesita infraestructura está
+diciendo que la lógica se ha escapado del dominio, y esa es la señal a atender, no el
+import a añadir.
 
 ```
-domain/src/test/java/domain/appointments/
+src/test/java/<paquete>/domain/appointments/
   AppointmentTest.java
   vos/TimeSlotTest.java
   enums/AppointmentStatusTest.java
 
-application/src/test/java/application/appointments/
+src/test/java/<paquete>/application/appointments/
   commands/ScheduleAppointmentCommandHandlerTest.java
   queries/GetTodaysAppointmentsQueryHandlerTest.java
 
-infrastructure/src/test/java/infrastructure/appointments/
+src/test/java/<paquete>/infrastructure/appointments/
   persistence/SqliteAppointmentRepositoryIT.java
 
-support/builders/          (si se decide un módulo de test-fixtures compartido — ver pendientes)
+src/test/java/<paquete>/architecture/
+  ArchitectureTest.java     Reglas compartidas de ArchUnit
+
+src/test/java/<paquete>/support/builders/
 ```
 
 ## Naming
@@ -237,9 +237,8 @@ refactor va aparte, en su propio cambio.
 
 ## Pendiente / a definir más adelante
 
-- Si `support/builders`/`support/fixtures` compartidos entre módulos JPMS necesitan un
-  subproyecto Gradle de test-fixtures propio (`java-test-fixtures`), o si la
-  duplicación puntual de builders pequeños entre módulos es aceptable a esta escala.
+- Si los builders y fixtures de `support/` acaban necesitando estar disponibles también
+  fuera de los tests (`java-test-fixtures`) o basta con dejarlos donde están.
 - Confirmar umbrales de PIT una vez haya un primer agregado real con el que probarlos.
 - Cómo se marcan explícitamente los tests de caracterización si en algún momento se
   incorpora código legacy (hoy no aplica: todo el desarrollo es greenfield).
