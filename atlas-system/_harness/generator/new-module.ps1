@@ -64,7 +64,10 @@ if (Test-Path $targetDir) {
 }
 
 if (-not $Tagline) {
-    $Tagline = "$Name - Personal Life Assistant module."
+    # La linea de arranque del proyecto sale de su propio dominio: cualquier texto fijo
+    # sobre el sistema al que pertenece filtraria el aislamiento en el primer parrafo
+    # de su CLAUDE.md.
+    $Tagline = (($Domain -split '\.\s|\.$')[0] -split ':')[0].Trim()
 }
 
 Write-Host "Creando modulo '$Name' en $targetDir ..." -ForegroundColor Cyan

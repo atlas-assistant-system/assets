@@ -22,7 +22,7 @@ La arquitectura y las decisiones de stack de este proyecto están documentadas e
 - [docs/repository-conventions.md](docs/repository-conventions.md) — forma de los repositorios y consecuencias del aislamiento físico entre contextos
 - [docs/enum-conventions.md](docs/enum-conventions.md) — smart enums: comportamiento, persistencia por nombre y cuándo usar enum vs Value Object
 - [docs/mapping-conventions.md](docs/mapping-conventions.md) — cómo se traduce el dominio a DTOs, sin lógica de negocio ni acceso a datos
-- [docs/testing-conventions.md](docs/testing-conventions.md) — naming, estructura por módulo JPMS, mocks, cobertura y mutation testing
+- [docs/testing-conventions.md](docs/testing-conventions.md) — naming, estructura de los tests, mocks, cobertura y mutation testing
 - [docs/validation-specification-conventions.md](docs/validation-specification-conventions.md) — por qué no se adoptan Validator/Specification y qué se usa en su lugar
 - [docs/conventions.md](docs/conventions.md) — convenciones de código, naming, testing y flujo de trabajo
 

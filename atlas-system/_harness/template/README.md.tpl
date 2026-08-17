@@ -6,7 +6,16 @@
 
 ## Empezar
 
-<!-- Instrucciones de instalación / arranque local, se completan cuando el stack esté definido. -->
+Requiere **JDK 25**. El wrapper de Gradle está incluido en el repositorio.
+
+```
+./gradlew build   # compila, aplica el formatter y pasa los tests de arquitectura
+./gradlew run     # arranca el servidor HTTP en http://localhost:8080
+```
+
+El código vive todo bajo `src/main/java`, con un paquete por anillo de la arquitectura
+(`domain`, `application`, `infrastructure`, `presentation`) más `app`, el composition
+root. Los tests están en `src/test/java`, replicando esa misma estructura.
 
 ## Documentación
 

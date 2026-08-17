@@ -14,7 +14,7 @@ public final class Main {
     public static void main(String[] args) throws IOException {
         configureLogging();
 
-        var application = ModuleApplication.wire(LogEntryRenderers.forCurrentConsole()).start(DEFAULT_PORT);
+        var application = Application.wire(LogEntryRenderers.forCurrentConsole()).start(DEFAULT_PORT);
 
         Runtime.getRuntime().addShutdownHook(new Thread(application::stop));
 

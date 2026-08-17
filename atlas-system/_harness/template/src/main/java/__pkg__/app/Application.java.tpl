@@ -10,7 +10,7 @@ import sharedkernel.presentation.http.SseEndpoint;
 import sharedkernel.presentation.http.WebServer;
 import sharedkernel.presentation.sse.SseHub;
 
-public final class ModuleApplication {
+public final class Application {
 
     public static final String EVENT_STREAM_PATH = "/events";
 
@@ -22,7 +22,7 @@ public final class ModuleApplication {
 
     private WebServer server;
 
-    private ModuleApplication(
+    private Application(
         SimpleCommandBus commands,
         SimpleQueryBus queries,
         SimpleDomainEventPublisher events,
@@ -35,7 +35,7 @@ public final class ModuleApplication {
         this.router = router;
     }
 
-    public static ModuleApplication wire(LogEntryRenderer renderer) {
+    public static Application wire(LogEntryRenderer renderer) {
         var events = new SimpleDomainEventPublisher();
         var commands = new SimpleCommandBus();
         var queries = new SimpleQueryBus();
@@ -43,10 +43,10 @@ public final class ModuleApplication {
 
         registerHandlers(commands, queries, events, renderer);
 
-        return new ModuleApplication(commands, queries, events, hub, routes(commands, queries));
+        return new Application(commands, queries, events, hub, routes(commands, queries));
     }
 
-    public ModuleApplication start(int port) throws IOException {
+    public Application start(int port) throws IOException {
         server = WebServer
             .onLoopback(port)
             .mount("/", router)
