@@ -170,7 +170,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.sharedkernel:sharedkernel:0.15.0")
+    implementation("dev.sharedkernel:sharedkernel:0.16.0")
     testImplementation("dev.sharedkernel:sharedkernel-archunit:0.2.0")
 }
 ```

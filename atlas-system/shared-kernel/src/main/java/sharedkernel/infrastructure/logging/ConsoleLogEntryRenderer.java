@@ -1,5 +1,6 @@
 package sharedkernel.infrastructure.logging;
 
+import java.nio.charset.Charset;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -12,6 +13,7 @@ public final class ConsoleLogEntryRenderer implements LogEntryRenderer {
 
     public static final String ESC = String.valueOf((char) 27);
     public static final String GUTTER = "▌";
+    public static final String ASCII_GUTTER = "|";
     public static final String RESET = ESC + "[0m";
     public static final String DIM = ESC + "[90m";
     public static final String GREEN = ESC + "[32m";
@@ -22,9 +24,33 @@ public final class ConsoleLogEntryRenderer implements LogEntryRenderer {
     private static final int NAME_WIDTH = 24;
 
     private final ZoneId zone;
+    private final String gutter;
 
     public ConsoleLogEntryRenderer(ZoneId zone) {
+        this(zone, outputCharset());
+    }
+
+    public ConsoleLogEntryRenderer(ZoneId zone, Charset outputCharset) {
         this.zone = zone;
+        this.gutter = gutterFor(outputCharset);
+    }
+
+    static String gutterFor(Charset outputCharset) {
+        if (outputCharset.newEncoder().canEncode(GUTTER)) {
+            return GUTTER;
+        }
+
+        return ASCII_GUTTER;
+    }
+
+    private static Charset outputCharset() {
+        var configured = System.getProperty("stdout.encoding");
+
+        if (configured == null) {
+            return Charset.defaultCharset();
+        }
+
+        return Charset.forName(configured, Charset.defaultCharset());
     }
 
     @Override
@@ -34,7 +60,7 @@ public final class ConsoleLogEntryRenderer implements LogEntryRenderer {
         var duration = String.format("%6s", entry.durationMs() + "ms");
         var line = new StringBuilder();
 
-        line.append(gutterColorFor(entry)).append(GUTTER).append(RESET).append(' ');
+        line.append(gutterColorFor(entry)).append(gutter).append(RESET).append(' ');
         line.append(DIM).append(time).append(RESET).append("  ");
         line.append(entry.kind() == LogKind.QUERY ? DIM + name + RESET : name);
         line.append(DIM).append(duration).append(RESET);

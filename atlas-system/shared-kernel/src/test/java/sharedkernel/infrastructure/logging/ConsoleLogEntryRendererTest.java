@@ -2,6 +2,7 @@ package sharedkernel.infrastructure.logging;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,29 @@ class ConsoleLogEntryRendererTest {
 
     private static final Instant AT = Instant.parse("2026-08-16T10:15:30Z");
 
-    private final ConsoleLogEntryRenderer renderer = new ConsoleLogEntryRenderer(ZoneOffset.UTC);
+    private final ConsoleLogEntryRenderer renderer =
+        new ConsoleLogEntryRenderer(ZoneOffset.UTC, StandardCharsets.UTF_8);
+
+    @Test
+    void shouldUseTheBarWhenTheOutputEncodingSupportsIt() {
+        assertThat(ConsoleLogEntryRenderer.gutterFor(StandardCharsets.UTF_8))
+            .isEqualTo(ConsoleLogEntryRenderer.GUTTER);
+    }
+
+    @Test
+    void shouldFallBackToAnAsciiGutterWhenTheOutputEncodingCannotRenderTheBar() {
+        assertThat(ConsoleLogEntryRenderer.gutterFor(StandardCharsets.US_ASCII))
+            .isEqualTo(ConsoleLogEntryRenderer.ASCII_GUTTER);
+    }
+
+    @Test
+    void shouldRenderTheAsciiGutterWhenTheOutputEncodingCannotRenderTheBar() {
+        var ascii = new ConsoleLogEntryRenderer(ZoneOffset.UTC, StandardCharsets.US_ASCII);
+
+        var line = ascii.render(entry(LogKind.COMMAND, LogOutcome.SUCCESS, null, null, null));
+
+        assertThat(line).startsWith(ConsoleLogEntryRenderer.GREEN + ConsoleLogEntryRenderer.ASCII_GUTTER);
+    }
 
     private static HandlerLogEntry entry(LogKind kind, LogOutcome outcome, String errorCode, String exception,
         String summary) {

@@ -121,6 +121,12 @@ type=command name=ScheduleAppointment outcome=failure errorCode=APPOINTMENT_CANC
 Que el fichero de log nunca lleve secuencias ANSI es deliberado, y por eso **la semántica
 no depende del color**: el formato plano lleva `outcome=` escrito con todas las letras.
 
+La barra del margen (`▌`) no se emite a ciegas: el renderer comprueba si la codificación
+de salida puede representarla y, si no, usa `|`. Sin esa comprobación, una consola de
+Windows con página de códigos heredada imprime `?` en cada línea. Si prefieres la barra,
+la solución no es forzar `stdout.encoding` —eso produciría caracteres corruptos, que es
+peor que el `|`— sino poner el terminal en UTF-8.
+
 ## Correlación
 
 `CorrelationContext` usa `ScopedValue` (Java 25): se propaga por la cadena de llamadas
