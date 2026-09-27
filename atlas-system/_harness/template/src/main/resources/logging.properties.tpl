@@ -1,9 +1,0 @@
-handlers=java.util.logging.ConsoleHandler
-.level=INFO
-
-java.util.logging.ConsoleHandler.level=ALL
-java.util.logging.ConsoleHandler.formatter=sharedkernel.infrastructure.logging.RawMessageFormatter
-
-sharedkernel.command.level=INFO
-sharedkernel.query.level=INFO
-{{MODULE_PACKAGE}}.level=INFO

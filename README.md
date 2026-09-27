@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/public-png/lockup/lockup-horizontal-dark.png" alt="ATLAS — Brand assets" width="100%" />
+  <img src="public-png/lockup/lockup-horizontal-dark.png" alt="ATLAS — Brand assets" width="100%" />
 </div>
 
 <div align="center">
@@ -13,7 +13,7 @@
 </div>
 
 <div align="center">
-  <a href="assets/public-png/lockup/">assets</a>
+  <a href="public-png/lockup/">assets</a>
 </div>
 
 <br />
