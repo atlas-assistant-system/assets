@@ -1,9 +1,45 @@
+<div align="center">
+  <img src="../../assets/public-png/lockup/lockup-horizontal-dark.png" alt="Harness de módulos de Atlas" width="100%" />
+</div>
+
+<div align="center">
+
 # Harness de módulos de Atlas
+
+</div>
+
+<div align="center">
+  What you need to see, when you look up.
+</div>
+
+<div align="center">
+  <a href="../../assets/public-png/lockup/">assets</a>
+</div>
+
+<br />
+
+<div align="center">
+  <a href="https://go-skill-icons.vercel.app/">
+    <img src="https://go-skill-icons.vercel.app/api/icons?i=java,gradle,sqlite,js,html,css,git&titles=true" alt="Technology stack" />
+  </a>
+</div>
+
+---
+
+<div align="center">
+
+## 🎯 Purpose
+
+</div>
 
 Este directorio es el "motor" que genera y mantiene coherentes los módulos de Atlas
 (Agenda, Finanzas, Salud, ...) manteniéndolos **completamente independientes** entre sí.
 
-## Principio
+<div align="center">
+
+## 🏗️ Architecture
+
+</div>
 
 Cada módulo de Atlas se desarrolla como si fuera un producto standalone real:
 
@@ -35,7 +71,11 @@ Dos consecuencias que conviene no olvidar al revisar decisiones:
   requisitos del ensamblaje final**, redactadas de forma neutra: leídas desde el módulo
   parecen simple higiene, y no filtran que exista un sistema que lo componga.
 
-## Estructura
+<div align="center">
+
+## 📦 Project layout
+
+</div>
 
 ```
 shared-kernel/          Proyecto Gradle real del Shared Kernel (codigo Java compartido).
@@ -74,7 +114,11 @@ _harness/
   registry.json        Catálogo de módulos: nombre, ruta, dominio, versión de plantilla
 ```
 
-## Flujo de trabajo
+<div align="center">
+
+## 🚀 Development setup
+
+</div>
 
 ### 1. Definir (o evolucionar) el estándar compartido
 
@@ -128,14 +172,22 @@ carpeta.
 Si un módulo tiene cambios locales sin commitear en esos ficheros, se omite y se avisa
 (para no pisar trabajo en curso).
 
-## Qué NO comparten los módulos
+<div align="center">
+
+## 🔹 Module boundaries
+
+</div>
 
 - Código, ni siquiera librerías comunes (cada uno decide su propia implementación
   dentro del estándar compartido).
 - Historial git.
 - Visibilidad entre ellos ni del repo `atlas`.
 
-## Qué genera el esqueleto
+<div align="center">
+
+## 🔹 Generated project
+
+</div>
 
 Un módulo nuevo nace **compilable y ejecutable**: un único proyecto Gradle con un solo
 `src/main/java` y `src/test/java`, y un `module-info.java` para todo el proyecto. Los
@@ -155,7 +207,12 @@ gradle run    # arranca el servidor HTTP en loopback
 Las rutas de la plantilla usan `__pkg__` como marcador del paquete base; el generador lo
 sustituye por el slug del módulo (sin guiones, para que sea un identificador Java válido).
 
-## Pendiente
+<div align="center">
+
+## 🔬 Scope and status
+
+</div>
+
 - Diseñar la capa de integración final (cómo se ensamblan los módulos en la app
   Atlas real) — deliberadamente fuera de alcance por ahora. Lo único que se exige desde
   ya es que cada módulo cumpla las tres reglas de producto autónomo, para que ensamblar
